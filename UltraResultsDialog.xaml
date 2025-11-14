@@ -1,0 +1,39 @@
+﻿<Window x:Class="RevitLinkManagerUltra.UltraResultsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Linking Results - Link Manager Ultra" 
+        Height="500" 
+        Width="600"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Name="ResultsTitle" 
+                   FontWeight="Bold" FontSize="16" 
+                   Margin="0,0,0,10"/>
+
+        <TextBlock Grid.Row="1" Name="SummaryText" 
+                   FontSize="12" Margin="0,0,0,15"/>
+
+        <TabControl Grid.Row="2" Margin="0,0,0,15">
+            <TabItem Header="Success">
+                <ListBox Name="SuccessList" />
+            </TabItem>
+            <TabItem Header="Failed">
+                <ListBox Name="FailedList" />
+            </TabItem>
+            <TabItem Header="Skipped">
+                <ListBox Name="SkippedList" />
+            </TabItem>
+        </TabControl>
+
+        <Button Grid.Row="3" Content="Close" 
+                Click="Close_Click" 
+                Width="80" HorizontalAlignment="Right"/>
+    </Grid>
+</Window>
