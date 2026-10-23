@@ -7,10 +7,13 @@ RevitLinkerPro is a Revit add-in for batch-linking Revit project files (`.rvt`) 
 ```text
 RevitLinkerPro/
 ├── 00-Revit Addin/
-│   └── Revit 2020/
-│       ├── RevitLinkManagerUltra.dll
-│       ├── RevitLinkManagerUltra.pdb
-│       └── RevitLinkManagerUltra.addin
+│   ├── Revit 2020/  (compiled DLL supplied)
+│   ├── Revit 2021/  (manifest template; build required)
+│   ├── Revit 2022/  (manifest template; build required)
+│   ├── Revit 2023/  (manifest template; build required)
+│   ├── Revit 2024/  (manifest template; build required)
+│   ├── Revit 2025/  (manifest template; build required)
+│   └── Revit 2026/  (manifest template; build required)
 ├── source code/
 │   ├── RevitLinkManagerUltra.sln
 │   ├── RevitLinkManagerUltra.csproj
@@ -20,7 +23,7 @@ RevitLinkerPro/
 └── README.md
 ```
 
-**Important:** The repository currently contains a compiled Revit 2020 DLL only. Separate, validated builds for other Revit versions are not present yet, so the folder structure does not claim compatibility with Revit 2021–2026. Do not copy the 2020 DLL into other version folders and assume it will work.
+**Version status:** Version-specific deployment folders and manifest templates are now provided for Revit 2020–2026. The repository currently contains a compiled DLL only for Revit 2020. The Revit 2021–2026 folders are prepared for their matching builds, but their DLLs have not been compiled or runtime-tested here. Do not copy the 2020 DLL into newer-version folders and assume compatibility. A manifest is not itself a compiled add-in.
 
 ## Download
 
@@ -87,10 +90,23 @@ After installation, find the **Link Manager Ultra** ribbon tab and **Advanced Li
 
 | Revit version | Repository status |
 |---|---|
-| Revit 2020 | Existing DLL and manifest are supplied; test in your environment before production use. |
-| Revit 2021–2026 | No version-specific build has been verified or supplied in this repository yet. |
+| Revit 2020 | Compiled DLL and manifest supplied; test in your environment before production use. |
+| Revit 2021–2024 | Version folder and manifest template supplied; compile against that release's Revit API before installing. |
+| Revit 2025–2026 | Version folder and manifest template supplied; a separate modern .NET build is required. The current .NET Framework project is not a ready-to-use build for these releases. |
 
 The current project file targets Revit 2020 API assemblies. The source project uses the standard `$(ProgramFiles)\Autodesk\Revit 2020\` reference location; adjust it if Revit is installed elsewhere.
+
+## Version-specific folders (Revit 2020–2026)
+
+The `00-Revit Addin` directory contains a folder for each release from Revit 2020 through Revit 2026. Each folder contains the appropriate `.addin` manifest template. Only Revit 2020 currently includes a compiled DLL.
+
+Before installing any version from 2021 onward:
+1. Build the source against the matching Revit API and the correct .NET target for that release.
+2. Copy that release's own DLL into its matching folder.
+3. Edit that folder's manifest so `<Assembly>` points to the actual local DLL path.
+4. Install the manifest in the matching version's Addins directory.
+
+Revit 2025 and later use the modern .NET runtime, unlike the .NET Framework target in the current legacy project. They require project/build configuration changes and should not be considered supported until compiled and tested.
 
 ## Installation (Revit 2020)
 

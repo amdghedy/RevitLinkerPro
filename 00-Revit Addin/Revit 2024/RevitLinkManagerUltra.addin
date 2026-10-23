@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>RevitLinkManagerUltra</Name>
+    <Assembly>C:\PATH\TO\YOUR\RevitLinkerPro\Revit 2024\RevitLinkManagerUltra.dll</Assembly>
+    <AddInId>c4f795c7-8d9e-4f63-b7a1-6d8e4f9a2b3c</AddInId>
+    <FullClassName>RevitLinkManagerUltra.AppUltra</FullClassName>
+    <VendorId>LinkManagerUltra</VendorId>
+    <VendorDescription>Batch Revit linking with folder scanning, progress tracking, and per-file results</VendorDescription>
+  </AddIn>
+</RevitAddIns>
