@@ -1,188 +1,157 @@
 # RevitLinkerPro — Batch Revit Link Manager
 
-**RevitLinkerPro** is a Revit add-in for linking multiple Revit project files (`.rvt`) into the currently open host project. It reduces repetitive file-by-file work with multi-select, folder scanning, progress feedback, duplicate checks, and a per-file results summary.
+RevitLinkerPro is a Revit add-in for batch-linking Revit project files (`.rvt`) into the currently open host project. It provides file selection, folder scanning, progress feedback, duplicate checks, and a per-file result summary.
 
-> **Current implementation note:** This README documents the functionality present in the checked-in source. The current implementation creates links using Revit's default placement (**origin-to-origin**) and does not currently expose UI controls for Overlay/Attachment reference type or Room Bounding. Those settings should not be assumed to be available until they are implemented in the code.
+## Repository layout
 
----
+```text
+RevitLinkerPro/
+├── 00-Revit Addin/
+│   └── Revit 2020/
+│       ├── RevitLinkManagerUltra.dll
+│       ├── RevitLinkManagerUltra.pdb
+│       └── RevitLinkManagerUltra.addin
+├── source code/
+│   ├── RevitLinkManagerUltra.sln
+│   ├── RevitLinkManagerUltra.csproj
+│   ├── *.cs
+│   ├── *.xaml
+│   └── Properties/
+└── README.md
+```
 
-## Contents
+**Important:** The repository currently contains a compiled Revit 2020 DLL only. Separate, validated builds for other Revit versions are not present yet, so the folder structure does not claim compatibility with Revit 2021–2026. Do not copy the 2020 DLL into other version folders and assume it will work.
 
-- [Features](#features)
-- [Ribbon commands](#ribbon-commands)
-- [Workflow](#workflow)
-- [Results and diagnostics](#results-and-diagnostics)
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Build from source](#build-from-source)
-- [Important behavior and limitations](#important-behavior-and-limitations)
-- [Troubleshooting](#troubleshooting)
-- [Project structure](#project-structure)
-- [Contributing](#contributing)
-- [License](#license)
+## Download
+
+### Get the available add-in files
+
+1. Open the [00-Revit Addin folder](https://github.com/amdghedy/RevitLinkerPro/tree/main/00-Revit%20Addin/Revit%202020).
+2. Open `RevitLinkManagerUltra.dll` and use GitHub's **Download raw file** control (or use the direct file link below).
+3. Download `RevitLinkManagerUltra.addin` from the same folder.
+4. Save both files locally. The DLL is the add-in assembly loaded by Revit; it is **not a standalone Windows application**.
+
+- [Download RevitLinkManagerUltra.dll](https://raw.githubusercontent.com/amdghedy/RevitLinkerPro/main/00-Revit%20Addin/Revit%202020/RevitLinkManagerUltra.dll)
+- [Download the Revit 2020 manifest](https://raw.githubusercontent.com/amdghedy/RevitLinkerPro/main/00-Revit%20Addin/Revit%202020/RevitLinkManagerUltra.addin)
+- [Browse all add-in files](https://github.com/amdghedy/RevitLinkerPro/tree/main/00-Revit%20Addin)
+
+### Download all source code
+
+1. Open the [repository page](https://github.com/amdghedy/RevitLinkerPro).
+2. Select **Code**.
+3. Select **Download ZIP**.
+4. Extract the ZIP, then open `source code/RevitLinkManagerUltra.sln` in Visual Studio.
+
+## Is there an EXE?
+
+**No standalone `.exe` is included in this repository at present.** Revit add-ins are normally compiled as DLL assemblies and loaded by Revit through an `.addin` manifest. The supplied `RevitLinkManagerUltra.dll` is the executable add-in component; it is not launched by double-clicking it.
+
+An installer/launcher EXE would be a separate deliverable and must be created and tested separately. No installer EXE download link is provided until such a file is actually built and published. Avoid downloading unofficial repackaged executables.
 
 ## Features
 
-### Batch linking
-
 - Select multiple individual `.rvt` files in one file-picker operation.
 - Scan a selected folder for `.rvt` files.
-- Choose whether a folder scan includes subfolders or only the selected top-level folder.
-- Review the files found by the dedicated **Link from Folders** command before starting.
-- Link the selected files into the currently active Revit project.
-- Display live progress, including the current filename and item count.
-- Continue processing the remaining files when an individual file fails.
+- Choose whether to include subfolders or scan only the selected folder.
+- Preview discovered files in the **Link from Folders** workflow.
+- Link selected files into the active Revit host project.
+- Show progress and the current filename during processing.
+- Continue processing after an individual file fails.
 - Detect files that appear to be already linked and skip them.
-- Show per-file success, failure, and skipped results.
-- Measure total elapsed time and average successful-link processing time.
+- Display **Success**, **Failed**, and **Skipped** results.
+- Report total elapsed time and average successful-link processing time.
 - Warn when an input file exceeds 500 MB.
-- Attempt to write optional linking metadata to the linked instance's **Comments** parameter.
-
-### User interface
-
-- **Link Manager Ultra** — selection workflow for individual files or folder scanning.
-- **Link from Folders** — folder-based workflow with a preview list before linking.
-- A progress window showing the operation status and current file.
-- A results dialog with separate **Success**, **Failed**, and **Skipped** tabs.
+- Attempt to write timestamp and file-size metadata to the link instance's Comments parameter.
 
 ## Ribbon commands
 
-After installation, look for the **Link Manager Ultra** ribbon tab and its **Advanced Linking** panel.
+After installation, find the **Link Manager Ultra** ribbon tab and **Advanced Linking** panel.
 
-| Command | What it does |
+| Command / option | Function |
 |---|---|
-| **Link Manager Ultra** | Opens the selection dialog. Choose individual files or scan a folder, then starts the batch operation. |
-| **Link from Folders** | Opens a folder picker, asks whether to include subfolders, displays the discovered files for review, and starts linking after confirmation. |
+| **Link Manager Ultra** | Opens the selection dialog for individual files or folder scanning. |
+| **Link from Folders** | Opens a folder picker, asks about subfolders, previews found files, and starts linking after confirmation. |
+| **Select individual files** | Multi-selects Revit project files (`.rvt`). |
+| **Scan folders and subfolders** | Selects a folder and scans for `.rvt` files. |
+| **Include subfolders in scan** | Searches descendant folders when enabled; otherwise scans only the selected folder. |
+| **Continue / Cancel** | Continues with the selected workflow or closes the dialog. |
+| Progress window | Shows the current operation and file being processed. |
+| Results dialog | Shows successful, failed, and skipped files and timing information. |
 
-### Selection options
+## Requirements and version support
 
-In **Link Manager Ultra**:
+- Windows and Autodesk Revit.
+- An open Revit project to act as the host.
+- .NET Framework 4.7 targeting pack for building the checked-in project.
+- Revit API assemblies matching the target Revit version.
 
-| Option | Behavior |
+| Revit version | Repository status |
 |---|---|
-| **Select individual files** | Opens a multi-select file dialog filtered to Revit project files (`.rvt`). |
-| **Scan folders and subfolders** | Select a folder and scan for `.rvt` files. |
-| **Include subfolders in scan** | When enabled, searches all descendant folders; when disabled, searches only the selected folder. This checkbox is available for folder mode. |
-| **Continue / Cancel** | Continue to the selected workflow or close the dialog without linking. |
+| Revit 2020 | Existing DLL and manifest are supplied; test in your environment before production use. |
+| Revit 2021–2026 | No version-specific build has been verified or supplied in this repository yet. |
 
-In **Link from Folders**, the add-in asks whether to include subfolders, then presents a preview showing the number of files found, the selected folder, the scan scope, and the discovered filenames. Choose **Link Files** to proceed or **Cancel** to stop.
+The current project file targets Revit 2020 API assemblies. The source project uses the standard `$(ProgramFiles)\Autodesk\Revit 2020\` reference location; adjust it if Revit is installed elsewhere.
 
-## Workflow
-
-1. Open the **host Revit project** in which you want to place the links.
-2. Open **Link Manager Ultra** from the Revit ribbon.
-3. Choose **Select individual files** or **Scan folders and subfolders**.
-4. Select the required files or folder and confirm the scan scope.
-5. For the **Link from Folders** command, review the discovered file list and choose **Link Files**.
-6. Monitor the progress window while each file is processed.
-7. Review the final results, including successful, failed, and skipped files.
-
-## Results and diagnostics
-
-The results dialog provides a summary containing:
-
-- Total number of files submitted for processing
-- Successful, failed, and skipped counts
-- Total elapsed time
-- Average time per successful link
-
-The tabs show:
-
-- **Success** — filename and reported processing duration.
-- **Failed** — filename and the error message recorded for that file.
-- **Skipped** — filename and the reason it was skipped, such as an already-linked file.
-
-A file larger than **500 MB** generates a warning during processing. The warning is recorded internally; the current results window does not have a separate Warnings tab.
-
-## Requirements
-
-- Windows
-- Autodesk Revit
-- A Revit project open as the host document
-- .NET Framework **4.7** target in the checked-in project configuration
-- Revit API assemblies matching the Revit version you intend to run
-
-The project file currently references Revit API assemblies from a local **Revit 2020** installation path. That makes the checked-in project configuration Revit-2020-oriented; compatibility with other Revit releases has not been established by this repository configuration.
-
-## Installation
-
-The repository contains source code, a compiled DLL, and an example `.addin` manifest. The manifest currently contains a **placeholder assembly path** and must be edited for the target machine.
+## Installation (Revit 2020)
 
 1. Close Revit.
-2. Obtain or build `RevitLinkManagerUltra.dll`.
-3. Copy the DLL to a stable local folder, for example:
-   `%AppData%\Autodesk\Revit\Addins\2020\RevitLinkerPro\`
-4. Copy `RevitLinkManagerUltra.addin` to the matching Revit Addins folder:
-   `%AppData%\Autodesk\Revit\Addins\2020\`
-5. Edit the `<Assembly>` value in the manifest so it points to the actual full path of `RevitLinkManagerUltra.dll`. Do not leave the example `C:\PATH\TO\YOUR\RevitLinkManagerUltra.dll` value unchanged.
-6. Confirm the `<FullClassName>` remains `RevitLinkManagerUltra.AppUltra` and the assembly path is correct.
-7. Start Revit and check for the **Link Manager Ultra** ribbon tab.
+2. Create a stable local folder, for example `%AppData%\Autodesk\Revit\Addins\2020\RevitLinkerPro\`.
+3. Copy `RevitLinkManagerUltra.dll` into that folder.
+4. Open the downloaded `RevitLinkManagerUltra.addin` in a text editor.
+5. Update its `<Assembly>` element to the full local path of `RevitLinkManagerUltra.dll`. Do not leave a GitHub URL or an example path in this field.
+6. Copy the edited `.addin` manifest to `%AppData%\Autodesk\Revit\Addins\2020\` (the manifest belongs directly in that version's Addins folder).
+7. Start Revit 2020 and look for the **Link Manager Ultra** ribbon tab.
 
-> Use the Addins folder for the Revit release you have configured and ensure the add-in was compiled against that release's API. The example path above is for Revit 2020, matching the current project references.
+The manifest's assembly path must point to a local DLL. Revit does not load the DLL directly from a GitHub URL.
 
 ## Build from source
 
 1. Install Visual Studio with the **.NET desktop development** workload and the .NET Framework 4.7 targeting pack.
-2. Install the intended Revit version and locate its `RevitAPI.dll` and `RevitAPIUI.dll`.
-3. Open `RevitLinkManagerUltra.sln`.
-4. Check the `HintPath` values for `RevitAPI` and `RevitAPIUI` in `RevitLinkManagerUltra.csproj`. Update them to the correct local Revit installation if necessary.
-5. Build the solution in the desired configuration.
-6. Update the `.addin` manifest's assembly path to the built DLL and install the manifest as described above.
+2. Install Revit 2020 or obtain matching Revit 2020 API assemblies.
+3. Open `source code/RevitLinkManagerUltra.sln`.
+4. Confirm the Revit API reference paths in `RevitLinkManagerUltra.csproj`.
+5. Build the solution.
+6. Install the newly built DLL and configure the `.addin` manifest as described above.
 
-A successful compilation alone does not verify runtime behavior. Test in a disposable sample project and with a small set of local RVT files before using it on production models.
+A successful compilation does not prove runtime compatibility. Test in a disposable sample project with a small set of RVT files before using production models.
 
-## Important behavior and limitations
+## Behavior and limitations
 
-- **Placement:** the current linking routine creates link instances at Revit's default **origin-to-origin** placement. Shared-coordinate placement is not exposed by the current UI.
-- **Reference type and Room Bounding:** Overlay/Attachment and Room Bounding controls are not implemented in the checked-in linking routine.
-- **File types:** folder scans search for `*.rvt` files only. Revit family files (`.rfa`) are not included.
-- **Duplicate check:** the tool attempts to compare the external reference path to the selected path. Path normalization differences may affect duplicate detection.
-- **Large files:** files over 500 MB are warned about, not automatically rejected.
-- **Transactions:** the batch is performed inside one Revit transaction. If Revit enters a failure state during processing, the overall transaction may not behave as a per-file independent commit.
-- **Metadata:** the add-in attempts to write a timestamp and file size to the link instance's `Comments` parameter. This is optional and can silently fail if the parameter is unavailable or read-only.
-- **Performance:** linking time depends on file size, model complexity, storage speed, network access, and Revit's processing.
-- **Workshared/cloud models:** the checked-in code is primarily based on local file paths. Validate the workflow with your actual model-storage setup before relying on it for cloud-hosted or workshared projects.
-- **Production safety:** make a backup and test on a copy of the host model before batch linking important project data.
+- **Placement:** links use Revit's default origin-to-origin placement; shared-coordinate placement is not exposed in the current UI.
+- **Reference type / Room Bounding:** Overlay/Attachment and Room Bounding controls are not implemented in the current code.
+- **File types:** folder scans find `.rvt` files only, not `.rfa` families.
+- **Duplicate detection:** compares external reference paths; path-normalization differences can affect detection.
+- **Large files:** files over 500 MB generate a warning rather than being rejected.
+- **Transactions:** the batch runs inside one Revit transaction, so individual files are not necessarily committed independently.
+- **Metadata:** writing to Comments is optional and can fail if the parameter is unavailable or read-only.
+- **Cloud/workshared models:** validate the workflow for your model storage environment before relying on it.
+- **Safety:** back up the host model and test on a copy before batch linking important project data.
 
 ## Troubleshooting
 
-| Problem | Things to check |
+| Issue | Checks |
 |---|---|
-| Ribbon tab does not appear | Confirm the `.addin` file is in the correct Revit-version Addins folder and that its XML is valid. Restart Revit. |
-| Add-in fails to load | Verify the assembly path, DLL availability, .NET target, and matching Revit API references. |
-| “Please open a Revit project first” | Open a project document and retry. |
-| No files are found | Confirm the folder contains `.rvt` files and check whether subfolders are included. |
-| A file is skipped as already linked | Review the host model's existing Revit links and confirm the selected path is the intended file. |
-| A file fails to link | Check that the file exists and can be accessed, that it is a valid Revit project, and that Revit reports no file or path issue. Review the error shown in the Failed tab. |
-| Folder scan reports an error | Confirm folder permissions and that the folder is reachable. Network and inaccessible subfolders can cause scanning errors. |
+| Ribbon tab does not appear | Check the manifest location, XML validity, assembly path, and restart Revit. |
+| Add-in fails to load | Confirm the DLL exists locally and the API references and Revit version match. |
+| No files found | Confirm the folder contains `.rvt` files and review the subfolder setting. |
+| A file is skipped | Check whether it is already linked and verify the selected path. |
+| A file fails | Check access permissions, path validity, file integrity, and the error in the Failed tab. |
 
-## Project structure
+## Source file guide
 
 | File | Purpose |
 |---|---|
-| `AppUltra.cs` | Registers the ribbon tab, panel, and two commands. |
-| `LinkManagerUltraCommand.cs` | Main selection flow, batch linking, duplicate detection, progress updates, and optional metadata. |
-| `LinkFromFoldersCommand.cs` | Folder selection, recursive-scan choice, preview, and batch launch. |
-| `AdvancedSelectionDialog.xaml(.cs)` | File-versus-folder selection UI. |
+| `AppUltra.cs` | Registers the ribbon tab, panel, and commands. |
+| `LinkManagerUltraCommand.cs` | Main selection flow, batch linking, duplicate checks, progress, and metadata. |
+| `LinkFromFoldersCommand.cs` | Folder selection, scan scope, preview, and batch launch. |
+| `AdvancedSelectionDialog.xaml(.cs)` | File/folder selection UI. |
 | `FolderScanPreviewDialog.xaml(.cs)` | Folder scan summary and filename preview. |
-| `LinkingProgressWindow.xaml(.cs)` | Progress and current-file display. |
-| `UltraResultsDialog.xaml(.cs)` | Success, failure, skipped, and timing summary UI. |
-| `UltraLinkResults.cs` | Stores per-file results, counts, warnings, file sizes, and timing data. |
+| `LinkingProgressWindow.xaml(.cs)` | Progress UI. |
+| `UltraResultsDialog.xaml(.cs)` | Success/failure/skipped results UI. |
+| `UltraLinkResults.cs` | Stores per-file results and timing data. |
 | `RevitLinkManagerUltra.csproj` | Build configuration and Revit API references. |
-| `RevitLinkManagerUltra.addin` | Revit add-in manifest example; edit the assembly path before use. |
-
-## Contributing
-
-Issues and pull requests are welcome. When reporting a problem, include:
-
-- Revit version and Windows version
-- Whether files are local, network-hosted, or cloud-hosted
-- Steps to reproduce the issue
-- The relevant error text from the results dialog
-- Whether the issue occurs with a single file or a batch
-
-Please do not upload confidential project models or credentials to public issues.
+| `RevitLinkManagerUltra.addin` | Revit manifest template; update its assembly path before use. |
 
 ## License
 
-No license file is currently included in this repository. Unless a license is added, reuse and redistribution of this source code are not automatically granted.
+No license file is currently included. Unless a license is added, reuse and redistribution are not automatically granted.
